@@ -1,0 +1,35 @@
+name: 'Forgejo Test Effectiveness & Security Evaluator'
+description: 'Automated PR evaluation of test suite effectiveness and security surface coverage powered by Gemini 2.5 Pro.'
+author: 'Forgejo AI Bot'
+
+inputs:
+  gemini_api_key:
+    description: 'Gemini API Key'
+    required: true
+  forgejo_token:
+    description: 'Forgejo / GitHub Access Token'
+    required: true
+    default: '${{ github.token }}'
+  custom_prompt_path:
+    description: 'Optional path to custom system instruction prompt markdown file'
+    required: false
+    default: ''
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - '--gemini-api-key'
+    - '${{ inputs.gemini_api_key }}'
+    - '--forgejo-token'
+    - '${{ inputs.forgejo_token }}'
+    - '--forgejo-server-url'
+    - '${{ github.server_url }}'
+    - '--repository'
+    - '${{ github.repository }}'
+    - '--pr-number'
+    - '${{ github.event.pull_request.number }}'
+    - '--head-sha'
+    - '${{ github.event.pull_request.head.sha }}'
+    - '--prompt-file'
+    - '${{ inputs.custom_prompt_path }}'

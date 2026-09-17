@@ -3,7 +3,7 @@ package sampleapp_test
 import (
 	"testing"
 
-	"forgejo-test-evaluator/examples/sampleapp"
+	"github.com/anoland/reviewbot/examples/sampleapp"
 )
 
 func TestAuthenticateToken_Success(t *testing.T) {

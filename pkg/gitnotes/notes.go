@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 const (

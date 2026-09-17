@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -10,25 +11,71 @@ import (
 	"strings"
 	"time"
 
-	"forgejo-test-evaluator/pkg/client"
-	"forgejo-test-evaluator/pkg/evaluator"
-	"forgejo-test-evaluator/pkg/gitnotes"
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/client"
+	"github.com/anoland/reviewbot/pkg/evaluator"
+	"github.com/anoland/reviewbot/pkg/gitnotes"
+	"github.com/anoland/reviewbot/pkg/models"
 )
+
+type githubEventPayload struct {
+	PullRequest struct {
+		Number int `json:"number"`
+		Head   struct {
+			SHA string `json:"sha"`
+		} `json:"head"`
+	} `json:"pull_request"`
+}
+
+func getEnv(keys ...string) string {
+	for _, key := range keys {
+		if val := os.Getenv(key); val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
+func parseEventPayload() (int, string) {
+	eventPath := getEnv("GITHUB_EVENT_PATH", "FORGEJO_EVENT_PATH")
+	if eventPath == "" {
+		return 0, ""
+	}
+
+	data, err := os.ReadFile(eventPath)
+	if err != nil {
+		return 0, ""
+	}
+
+	var payload githubEventPayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return 0, ""
+	}
+
+	return payload.PullRequest.Number, payload.PullRequest.Head.SHA
+}
 
 func main() {
 	promptFile := flag.String("prompt-file", "", "Path to custom prompt system instruction file")
-	forgejoToken := flag.String("forgejo-token", os.Getenv("FORGEJO_TOKEN"), "Forgejo API Token")
-	serverURL := flag.String("forgejo-server-url", os.Getenv("FORGEJO_SERVER_URL"), "Forgejo Server Base URL")
-	repository := flag.String("repository", os.Getenv("FORGEJO_REPOSITORY"), "Repository owner/repo")
-	prNumberStr := flag.String("pr-number", os.Getenv("FORGEJO_PR_NUMBER"), "Pull Request Number")
-	headSHA := flag.String("head-sha", os.Getenv("FORGEJO_HEAD_SHA"), "Head Commit SHA")
-	geminiAPIKey := flag.String("gemini-api-key", os.Getenv("GEMINI_API_KEY"), "Gemini API Key")
+	forgejoToken := flag.String("forgejo-token", getEnv("FORGEJO_TOKEN", "GITHUB_TOKEN"), "Forgejo API Token")
+	serverURL := flag.String("forgejo-server-url", getEnv("FORGEJO_SERVER_URL", "GITHUB_SERVER_URL"), "Forgejo Server Base URL")
+	repository := flag.String("repository", getEnv("FORGEJO_REPOSITORY", "GITHUB_REPOSITORY"), "Repository owner/repo")
+	prNumberStr := flag.String("pr-number", getEnv("FORGEJO_PR_NUMBER", "GITHUB_PR_NUMBER"), "Pull Request Number")
+	headSHA := flag.String("head-sha", getEnv("FORGEJO_HEAD_SHA", "GITHUB_SHA"), "Head Commit SHA")
+	geminiAPIKey := flag.String("gemini-api-key", getEnv("GEMINI_API_KEY"), "Gemini API Key")
 
 	flag.Parse()
 
+	eventPRNum, eventHeadSHA := parseEventPayload()
+
+	if *prNumberStr == "" && eventPRNum > 0 {
+		*prNumberStr = strconv.Itoa(eventPRNum)
+	}
+	if (*headSHA == "" || len(*headSHA) < 40) && eventHeadSHA != "" {
+		*headSHA = eventHeadSHA
+	}
+
 	if *repository == "" || *prNumberStr == "" {
-		log.Fatal("Error: repository and pr-number are required parameters or environment variables")
+		log.Fatalf("Error: repository and pr-number are required parameters or environment variables (repo: '%s', pr: '%s')", *repository, *prNumberStr)
 	}
 
 	prNum, err := strconv.Atoi(*prNumberStr)

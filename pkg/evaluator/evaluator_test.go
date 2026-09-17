@@ -3,9 +3,9 @@ package evaluator_test
 import (
 	"testing"
 
-	"forgejo-test-evaluator/pkg/client"
-	"forgejo-test-evaluator/pkg/evaluator"
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/client"
+	"github.com/anoland/reviewbot/pkg/evaluator"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 type mockForgejoClient struct {

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"forgejo-test-evaluator/pkg/gitnotes"
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/gitnotes"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 type MockGitRunner struct {

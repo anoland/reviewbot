@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"forgejo-test-evaluator/pkg/client"
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/client"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 func TestForgejoClient(t *testing.T) {

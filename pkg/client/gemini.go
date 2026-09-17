@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 type GeminiClient interface {

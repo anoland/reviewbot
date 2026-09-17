@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 func TestStateJSONSerialization(t *testing.T) {

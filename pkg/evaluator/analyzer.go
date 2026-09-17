@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"forgejo-test-evaluator/pkg/client"
-	"forgejo-test-evaluator/pkg/models"
+	"github.com/anoland/reviewbot/pkg/client"
+	"github.com/anoland/reviewbot/pkg/models"
 )
 
 type ChangedFile struct {

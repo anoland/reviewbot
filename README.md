@@ -103,7 +103,7 @@ jobs:
         uses: ./.
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          forgejo_token: ${{ secrets.GITHUB_TOKEN }}
+          forgejo_token: ${{ secrets.GITHUB_TOKEN }} # or secrets.FORGEJO_TOKEN
           # Optional custom prompt override:
           # custom_prompt_path: ".forgejo/prompts/custom_rules.md"
 

@@ -74,6 +74,14 @@ func main() {
 		*headSHA = eventHeadSHA
 	}
 
+	if *forgejoToken == "" {
+		log.Fatalf("Error: forgejo-token is required. Please set --forgejo-token parameter or FORGEJO_TOKEN / GITHUB_TOKEN environment variable.")
+	}
+
+	if *geminiAPIKey == "" {
+		log.Fatalf("Error: gemini-api-key is required. Please set --gemini-api-key parameter or GEMINI_API_KEY environment variable.")
+	}
+
 	if *repository == "" || *prNumberStr == "" {
 		log.Fatalf("Error: repository and pr-number are required parameters or environment variables (repo: '%s', pr: '%s')", *repository, *prNumberStr)
 	}

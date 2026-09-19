@@ -9,7 +9,6 @@ inputs:
   forgejo_token:
     description: 'Forgejo / GitHub Access Token'
     required: true
-    default: '${{ github.token }}'
   custom_prompt_path:
     description: 'Optional path to custom system instruction prompt markdown file'
     required: false

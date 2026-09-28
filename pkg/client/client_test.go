@@ -16,6 +16,9 @@ func TestForgejoClient(t *testing.T) {
 		case "/api/v1/repos/owner/repo/pulls/1.diff":
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("diff --git a/main.go b/main.go\n--- a/main.go\n+++ b/main.go\n@@ -1 +1 @@\n-old\n+new"))
+		case "/api/v1/repos/owner/repo/git/commits/main.diff":
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("diff --git a/main.go b/main.go\n--- a/main.go\n+++ b/main.go\n@@ -1 +1 @@\n-old\n+new"))
 		case "/api/v1/repos/owner/repo/raw/main/main.go":
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("package main\n\nfunc main() {}\n"))
@@ -44,6 +47,14 @@ func TestForgejoClient(t *testing.T) {
 	}
 	if len(diff) == 0 {
 		t.Errorf("expected non-empty diff")
+	}
+
+	commitDiff, err := cli.GetCommitDiff("owner", "repo", "main")
+	if err != nil {
+		t.Fatalf("GetCommitDiff failed: %v", err)
+	}
+	if len(commitDiff) == 0 {
+		t.Errorf("expected non-empty commit diff")
 	}
 
 	content, err := cli.GetPRFileContent("owner", "repo", "main", "main.go")

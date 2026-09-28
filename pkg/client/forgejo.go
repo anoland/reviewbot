@@ -11,6 +11,7 @@ import (
 
 type ForgejoClient interface {
 	GetPRDiff(owner, repo string, prNumber int) (string, error)
+	GetCommitDiff(owner, repo, ref string) (string, error)
 	GetPRFileContent(owner, repo, ref, filepath string) (string, error)
 	PostPRComment(owner, repo string, prNumber int, body string) error
 	PostPRInlineComment(owner, repo string, prNumber int, body, commitSHA, filepath string, line int) error
@@ -78,6 +79,27 @@ func (c *HTTPForgejoClient) GetPRDiff(owner, repo string, prNumber int) (string,
 	}
 	bytesResp, err := c.doRequest(req)
 	if err != nil {
+		return "", err
+	}
+	return string(bytesResp), nil
+}
+
+func (c *HTTPForgejoClient) GetCommitDiff(owner, repo, ref string) (string, error) {
+	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/git/commits/%s.diff", c.BaseURL, owner, repo, ref)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	bytesResp, err := c.doRequest(req)
+	if err != nil {
+		// Fall back to /commits/{ref}.diff if /git/commits/{ref}.diff is not available
+		fallbackURL := fmt.Sprintf("%s/api/v1/repos/%s/%s/commits/%s.diff", c.BaseURL, owner, repo, ref)
+		fallbackReq, fallbackErr := http.NewRequest("GET", fallbackURL, nil)
+		if fallbackErr == nil {
+			if fbBytes, fbErr := c.doRequest(fallbackReq); fbErr == nil {
+				return string(fbBytes), nil
+			}
+		}
 		return "", err
 	}
 	return string(bytesResp), nil

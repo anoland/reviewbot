@@ -1,6 +1,6 @@
 # Forgejo Test Effectiveness & Security Evaluator
 
-An automated, AI-powered **Forgejo Action** that analyzes Pull Requests to evaluate test suite effectiveness, security surface coverage, and code clarity. Powered by **Gemini 2.5 Pro**, this action provides deep code review insights, tracks state across iterations using **Git Notes**, and posts structured recommendations directly as PR comments.
+An automated, AI-powered **Forgejo Action** that analyzes Pull Requests and branches/refs to evaluate test suite effectiveness, security surface coverage, and code clarity. Powered by **Gemini 2.5 Pro**, this action provides deep code review insights, tracks state across iterations using **Git Notes**, and posts structured recommendations directly as PR comments or workflow log outputs.
 
 ---
 
@@ -35,7 +35,9 @@ An automated, AI-powered **Forgejo Action** that analyzes Pull Requests to evalu
 * **Test Effectiveness Categorization (Levels 0–4):** Distinguishes between performative/trivial tests and robust, security-critical assertions.
 * **Security Surface Mapping:** Identifies sensitive code changes (auth, input validation, cryptographic boundaries) and checks for corresponding negative/boundary test cases.
 * **Git-Native Persistence via Git Notes:** Stores evaluation metadata cleanly in `refs/notes/ai-test-bot` attached to commit SHAs—no cluttering PR threads with hidden HTML comments.
-* **Delta Tracking:** Tracks resolution state (`[RESOLVED]`, `[PARTIALLY ADDRESSED]`, `[UNRESOLVED]`) across PR update pushes (`synchronize` events).
+* **Delta Tracking:** Tracks resolution state (`[RESOLVED]`, `[PARTIALLY ADDRESSED]`, `[UNRESOLVED]`) across PR update pushes (`synchronize` events) and branch commits.
+* **PR and Branch Scan Modes:** Runs seamlessly on Pull Requests or standalone branch/ref pushes and `workflow_dispatch` events without requiring an open PR.
+* **Configurable Logging:** Supports configurable log levels (`none`, `info`, `debug`) to output process milestones and step details directly to action logs.
 * **Hybrid Prompt Loading:** Uses a built-in default system prompt (`//go:embed`) with support for repository-level prompt overrides (`--prompt-file`).
 
 ---
@@ -72,22 +74,27 @@ An automated, AI-powered **Forgejo Action** that analyzes Pull Requests to evalu
 │   │   └── delta.go              # State comparison engine across commits
 │   ├── gitnotes/
 │   │   └── notes.go              # Git Notes reader/writer (refs/notes/ai-test-bot)
+│   ├── logger/
+│   │   └── logger.go             # Log level logging manager (none, info, debug)
 │   └── models/
 │       └── state.go              # JSON state data structures
 ├── action.yml                    # Forgejo / Gitea Action metadata definition
 ├── go.mod                        # Go module definition
 └── README.md
 
-Usage
+## Usage
 
-Add the action to your repository workflow at .forgejo/workflows/test-evaluator.yml:
+Add the action to your repository workflow at `.forgejo/workflows/test-evaluator.yml`:
 
-```
+```yaml
 name: Test Effectiveness & Security Evaluator
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   evaluate-tests:
@@ -104,7 +111,9 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           forgejo_token: ${{ secrets.GITHUB_TOKEN }} # or secrets.FORGEJO_TOKEN
+          log_level: info
+          # Optional ref or branch override when not running in PR context:
+          # ref: ${{ github.ref }}
           # Optional custom prompt override:
           # custom_prompt_path: ".forgejo/prompts/custom_rules.md"
-
 ```
